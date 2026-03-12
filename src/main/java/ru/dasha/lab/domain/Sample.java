@@ -13,6 +13,13 @@ public final class Sample {
     private Instant createdAt;
     private Instant updatedAt;
 
+    public Sample(String name, String type, String location, SampleStatus status, String ownerUsername) {
+        this.name = name;
+        this.type = type;
+        this.location = location;
+        this.status = status;
+        this.ownerUsername = ownerUsername;
+    }
 
     public Sample(long id, String name, String type, String location, SampleStatus status, String ownerUsername, Instant createdAt, Instant updatedAt) {
         this.id = id;

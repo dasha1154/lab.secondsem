@@ -12,6 +12,11 @@ public final class Protocol {
     private Instant createdAt;
     private Instant updatedAt;
 
+    public Protocol(String name, Set<MeasurementParam> requiredParams, String ownerUsername) {
+        this.name = name;
+        this.requiredParams = requiredParams;
+        this.ownerUsername = ownerUsername;
+    }
 
     public Protocol(long id, String name, Set<MeasurementParam> requiredParams, String ownerUsername, Instant createdAt, Instant updatedAt) {
         this.id = id;

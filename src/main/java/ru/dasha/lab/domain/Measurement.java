@@ -15,6 +15,14 @@ public final class Measurement {
     private Instant createdAt;
     private Instant updatedAt;
 
+    public Measurement(long sampleId, MeasurementParam param, double value, String unit, String method, String ownerUsername) {
+        this.sampleId = sampleId;
+        this.param = param;
+        this.value = value;
+        this.unit = unit;
+        this.method = method;
+        this.ownerUsername = ownerUsername;
+    }
 
     public Measurement(long id, long sampleId, MeasurementParam param, double value, String unit, String method, Instant measuredAt, String ownerUsername, Instant createdAt, Instant updatedAt) {
         this.id = id;
