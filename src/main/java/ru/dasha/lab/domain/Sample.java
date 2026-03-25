@@ -13,23 +13,15 @@ public final class Sample {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Sample(String name, String type, String location, SampleStatus status, String ownerUsername) {
+    public Sample(Long id, String name, String type, String location, SampleStatus status, String ownerUsername, Instant createdAt, Instant updatedAt) {
+        this.id = id != null ? id : 0;
         this.name = name;
         this.type = type;
         this.location = location;
         this.status = status;
         this.ownerUsername = ownerUsername;
-    }
-
-    public Sample(long id, String name, String type, String location, SampleStatus status, String ownerUsername, Instant createdAt, Instant updatedAt) {
-        this.id = id;
-        this.name = name;
-        this.type = type;
-        this.location = location;
-        this.status = status;
-        this.ownerUsername = ownerUsername;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.createdAt = createdAt != null ? createdAt : Instant.now();
+        this.updatedAt = updatedAt != null ? updatedAt : this.createdAt;
     }
 
 

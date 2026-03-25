@@ -15,26 +15,17 @@ public final class Measurement {
     private Instant createdAt;
     private Instant updatedAt;
 
-    public Measurement(long sampleId, MeasurementParam param, double value, String unit, String method, String ownerUsername) {
+    public Measurement(Long id, Long sampleId, MeasurementParam param, double value, String unit, String method, Instant measuredAt, String ownerUsername, Instant createdAt, Instant updatedAt) {
+        this.id = id != null ? id : 0;
         this.sampleId = sampleId;
         this.param = param;
         this.value = value;
         this.unit = unit;
         this.method = method;
+        this.measuredAt = measuredAt != null ? measuredAt : Instant.now();
         this.ownerUsername = ownerUsername;
-    }
-
-    public Measurement(long id, long sampleId, MeasurementParam param, double value, String unit, String method, Instant measuredAt, String ownerUsername, Instant createdAt, Instant updatedAt) {
-        this.id = id;
-        this.sampleId = sampleId;
-        this.param = param;
-        this.value = value;
-        this.unit = unit;
-        this.method = method;
-        this.measuredAt = measuredAt;
-        this.ownerUsername = ownerUsername;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
+        this.createdAt = createdAt != null ? createdAt : Instant.now();
+        this.updatedAt = updatedAt != null ? updatedAt : this.createdAt;
     }
 
 
