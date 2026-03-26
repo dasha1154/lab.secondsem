@@ -5,11 +5,7 @@ import ru.dasha.lab.domain.MeasurementParam;
 import ru.dasha.lab.domain.SampleStatus;
 import ru.dasha.lab.validation.MeasurementValidator;
 
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class MeasurementManager {
@@ -73,7 +69,7 @@ public class MeasurementManager {
     public List<Measurement> getLastMeasurements(long sampleId, int n) {
         return measurements.stream()
                 .filter(m -> m.getSampleId() == sampleId)
-                .sorted((m1, m2) -> m2.getMeasuredAt().compareTo(m1.getMeasuredAt())) // use method not lambda
+                .sorted(Comparator.comparing(Measurement::getMeasuredAt).reversed()) // use method not lambda
                 .limit(n)
                 .collect(Collectors.toList());
     }
