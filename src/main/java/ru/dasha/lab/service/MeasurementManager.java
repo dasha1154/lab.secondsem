@@ -2,6 +2,7 @@ package ru.dasha.lab.service;
 
 import ru.dasha.lab.domain.Measurement;
 import ru.dasha.lab.domain.MeasurementParam;
+import ru.dasha.lab.domain.SampleStatus;
 import ru.dasha.lab.validation.MeasurementValidator;
 
 import java.time.Instant;
@@ -20,22 +21,18 @@ public class MeasurementManager {
     }
 
     public Measurement addMeasurement(long sampleId, MeasurementParam param, double value, String unit, String method, String ownerUsername) {
-        if (!sampleManager.exists(sampleId)) {
+        var sample = sampleManager.getSampleById(sampleId);
+        if (sample == null) {
             throw new IllegalArgumentException("Образец с id=" + sampleId + " не найден");
         }
-        var sample = sampleManager.getSampleById(sampleId);
-        if (sample.getStatus() == ru.dasha.lab.domain.SampleStatus.ARCHIVED) {
+        if (sample.getStatus() == SampleStatus.ARCHIVED) {
             throw new IllegalArgumentException("Нельзя добавлять измерения к архивному образцу");
         }
 
-        Measurement measurement = new Measurement(sampleId, param, value, unit, method, ownerUsername);
+        Measurement measurement = new Measurement(null, sampleId, param, value, unit, method, null, ownerUsername, null, null);
         MeasurementValidator.validate(measurement);
         measurement.setId(nextId++);
-        if (measurement.getMeasuredAt() == null) {
-            measurement.setMeasuredAt(Instant.now());
-        }
-        measurement.setCreatedAt(Instant.now());
-        measurement.setUpdatedAt(Instant.now());
+
         measurements.add(measurement);
         return measurement;
     }
@@ -76,7 +73,7 @@ public class MeasurementManager {
     public List<Measurement> getLastMeasurements(long sampleId, int n) {
         return measurements.stream()
                 .filter(m -> m.getSampleId() == sampleId)
-                .sorted((m1, m2) -> m2.getMeasuredAt().compareTo(m1.getMeasuredAt()))
+                .sorted((m1, m2) -> m2.getMeasuredAt().compareTo(m1.getMeasuredAt())) // use method not lambda
                 .limit(n)
                 .collect(Collectors.toList());
     }
@@ -129,18 +126,17 @@ public class MeasurementManager {
         String method = (newMethod != null && !newMethod.isBlank()) ? newMethod : oldMeasurement.getMethod();
 
         Measurement updatedMeasurement = new Measurement(
+                oldMeasurement.getId(),
                 oldMeasurement.getSampleId(),
                 param,
                 value,
                 unit,
                 method,
-                oldMeasurement.getOwnerUsername()
+                oldMeasurement.getMeasuredAt(),
+                oldMeasurement.getOwnerUsername(),
+                oldMeasurement.getCreatedAt(),
+                null
         );
-
-        updatedMeasurement.setId(oldMeasurement.getId());
-        updatedMeasurement.setMeasuredAt(oldMeasurement.getMeasuredAt());
-        updatedMeasurement.setCreatedAt(oldMeasurement.getCreatedAt());
-        updatedMeasurement.setUpdatedAt(Instant.now());
 
         MeasurementValidator.validate(updatedMeasurement);
 

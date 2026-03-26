@@ -4,7 +4,6 @@ import ru.dasha.lab.domain.MeasurementParam;
 import ru.dasha.lab.domain.Protocol;
 import ru.dasha.lab.validation.ProtocolValidator;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,11 +15,9 @@ public class ProtocolManager {
 
 
     public Protocol createProtocol(String name, Set<MeasurementParam> requiredParams, String ownerUsername) {
-        Protocol protocol = new Protocol(name, requiredParams, ownerUsername);
+        Protocol protocol = new Protocol(null, name, requiredParams, ownerUsername, null, null);
         ProtocolValidator.validate(protocol);
         protocol.setId(nextId++);
-        protocol.setCreatedAt(Instant.now());
-        protocol.setUpdatedAt(Instant.now());
         protocols.add(protocol);
         return protocol;
     }
@@ -40,23 +37,23 @@ public class ProtocolManager {
 
 
     public boolean updateProtocol(long id, String newName, Set<MeasurementParam> newRequiredParams) {
-        Protocol oldProtocol = getProtocolById(id);
-        if (oldProtocol == null) {
-            return false;
-        }
+        Protocol old = getProtocolById(id);
+        if (old == null) return false;
 
-        String name = (newName != null && !newName.isBlank()) ? newName : oldProtocol.getName();
-        Set<MeasurementParam> requiredParams = (newRequiredParams != null) ? newRequiredParams : oldProtocol.getRequiredParams();
+        String name = (newName != null && !newName.isBlank()) ? newName : old.getName();
+        Set<MeasurementParam> requiredParams = (newRequiredParams != null) ? newRequiredParams : old.getRequiredParams();
 
-        Protocol updatedProtocol = new Protocol(name, requiredParams, oldProtocol.getOwnerUsername());
-        updatedProtocol.setId(oldProtocol.getId());
-        updatedProtocol.setCreatedAt(oldProtocol.getCreatedAt());
-
-        ProtocolValidator.validate(updatedProtocol);
-        updatedProtocol.setUpdatedAt(Instant.now());
-
-        protocols.remove(oldProtocol);
-        protocols.add(updatedProtocol);
+        Protocol updated = new Protocol(
+                old.getId(),
+                name,
+                requiredParams,
+                old.getOwnerUsername(),
+                old.getCreatedAt(),
+                null
+        );
+        ProtocolValidator.validate(updated);
+        protocols.remove(old);
+        protocols.add(updated);
         return true;
     }
 

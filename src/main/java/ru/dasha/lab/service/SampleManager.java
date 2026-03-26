@@ -4,7 +4,6 @@ import ru.dasha.lab.domain.Sample;
 import ru.dasha.lab.domain.SampleStatus;
 import ru.dasha.lab.validation.SampleValidator;
 
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,11 +15,9 @@ public class SampleManager {
 
 
     public Sample addSample(String name, String type, String location, SampleStatus status, String ownerUsername) {
-        Sample sample = new Sample(name, type, location, status, ownerUsername);
+        Sample sample = new Sample(null, name, type, location, status, ownerUsername, null, null);
         SampleValidator.validate(sample);
         sample.setId(nextId++);
-        sample.setCreatedAt(Instant.now());
-        sample.setUpdatedAt(Instant.now());
         samples.add(sample);
         return sample;
     }
@@ -61,12 +58,9 @@ public class SampleManager {
         String location = (newLocation != null && !newLocation.isBlank()) ? newLocation : oldSample.getLocation();
         SampleStatus status = (newStatus != null) ? newStatus : oldSample.getStatus();
 
-        Sample updatedSample = new Sample(name, type, location, status, oldSample.getOwnerUsername());
-        updatedSample.setId(oldSample.getId());
-        updatedSample.setCreatedAt(oldSample.getCreatedAt());
+        Sample updatedSample = new Sample(oldSample.getId(), name, type, location, status, oldSample.getOwnerUsername(), oldSample.getCreatedAt(), null);
 
         SampleValidator.validate(updatedSample);
-        updatedSample.setUpdatedAt(Instant.now());
 
         samples.remove(oldSample);
         samples.add(updatedSample);
@@ -97,10 +91,6 @@ public class SampleManager {
 
     public boolean exists(long id) {
         Sample sample = getSampleById(id);
-        if (sample == null) {
-            return false;
-        } else {
-            return true;
-        }
+        return sample != null;
     }
 }
