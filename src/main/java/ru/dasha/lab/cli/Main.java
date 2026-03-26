@@ -1,6 +1,12 @@
 package ru.dasha.lab.cli;
 
-import ru.dasha.lab.service.*;
+import ru.dasha.lab.domain.Sample;
+import ru.dasha.lab.domain.SampleStatus;
+import ru.dasha.lab.service.MeasurementManager;
+import ru.dasha.lab.service.ProtocolManager;
+import ru.dasha.lab.service.SampleManager;
+
+import java.util.List;
 import java.util.Scanner;
 
 public class Main {
@@ -8,6 +14,7 @@ public class Main {
         try {
             System.setOut(new java.io.PrintStream(System.out, true, "UTF-8"));
         } catch (Exception e) {
+            // ignored
         }
 
         SampleManager sampleManager = new SampleManager();
@@ -31,6 +38,12 @@ public class Main {
                 case "help":
                     printHelp();
                     break;
+                case "sample_add":
+                    addSample(scanner, sampleManager);
+                    break;
+                case "sample_list":
+                    sampleList(sampleManager);
+                    break;
                 default:
                     System.out.println("Неизвестная команда. Введите help для списка команд.");
             }
@@ -40,7 +53,7 @@ public class Main {
     private static void printHelp() {
         System.out.println("Доступные команды:");
         System.out.println("  sample_add - добавить образец");
-        System.out.println("  sample_list [--status ACTIVE|ARCHIVED] - список образцов");
+        System.out.println("  sample_list - список образцов");
         System.out.println("  sample_show <id> - показать образец");
         System.out.println("  sample_update <id> field=value ... - обновить образец");
         System.out.println("  sample_archive <id> - архивировать образец");
@@ -51,5 +64,37 @@ public class Main {
         System.out.println("  prot_apply <protocol_id> <sample_id> - проверить выполнение протокола");
         System.out.println("  help - показать эту справку");
         System.out.println("  exit - выход");
+    }
+
+    private static void addSample(Scanner scanner, SampleManager sampleManager) {
+        System.out.print("Название: ");
+        String name = scanner.nextLine().trim();
+        System.out.print("Тип: ");
+        String type = scanner.nextLine().trim();
+        System.out.print("Место: ");
+        String location = scanner.nextLine().trim();
+
+        SampleStatus status = SampleStatus.ACTIVE;
+        String owner = "SYSTEM";
+
+        try {
+            Sample sample = sampleManager.addSample(name, type, location, status, owner);
+            System.out.println("OK sample_id=" + sample.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка: " + e.getMessage());
+        }
+    }
+
+    private static void sampleList(SampleManager sampleManager) {
+        List<Sample> samples = sampleManager.getAllSamples();
+        if (samples.isEmpty()) {
+            System.out.println("Нет образцов");
+            return;
+        }
+        System.out.printf("%-5s %-20s %-10s %-15s %s%n", "ID", "Name", "Type", "Location", "Status");
+        for (Sample s : samples) {
+            System.out.printf("%-5d %-20s %-10s %-15s %s%n",
+                    s.getId(), s.getName(), s.getType(), s.getLocation(), s.getStatus());
+        }
     }
 }
