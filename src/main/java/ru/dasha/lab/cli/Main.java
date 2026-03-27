@@ -59,6 +59,18 @@ public class Main {
                         System.out.println("Ошибка: id должен быть числом");
                     }
                     break;
+                case "sample_archive":
+                    if (parts.length < 2) {
+                        System.out.println("Ошибка: укажите id образца");
+                        break;
+                    }
+                    try {
+                        long id = Long.parseLong(parts[1]);
+                        sampleArchive(id, sampleManager);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Ошибка: id должен быть числом");
+                    }
+                    break;
                 default:
                     System.out.println("Неизвестная команда. Введите help для списка команд.");
             }
@@ -164,6 +176,24 @@ public class Main {
             System.out.println("OK");
         } else {
             System.out.println("Ошибка: не удалось обновить образец (возможно, образец не найден)");
+        }
+    }
+
+    private static void sampleArchive(long id, SampleManager sampleManager) {
+        Sample sample = sampleManager.getSampleById(id);
+        if (sample == null) {
+            System.out.println("Ошибка: образец с id=" + id + " не найден");
+            return;
+        }
+        if (sample.getStatus() == SampleStatus.ARCHIVED) {
+            System.out.println("Ошибка: образец уже ARCHIVED");
+            return;
+        }
+        boolean archived = sampleManager.archiveSample(id);
+        if (archived) {
+            System.out.println("OK sample " + id + " archived");
+        } else {
+            System.out.println("Ошибка: не удалось архивировать образец");
         }
     }
 }
