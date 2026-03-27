@@ -1,10 +1,7 @@
 package ru.dasha.lab.cli;
 
-import ru.dasha.lab.domain.Sample;
-import ru.dasha.lab.domain.SampleStatus;
-import ru.dasha.lab.service.MeasurementManager;
-import ru.dasha.lab.service.ProtocolManager;
-import ru.dasha.lab.service.SampleManager;
+import ru.dasha.lab.domain.*;
+import ru.dasha.lab.service.*;
 
 import java.util.List;
 import java.util.Scanner;
@@ -43,6 +40,24 @@ public class Main {
                     break;
                 case "sample_list":
                     sampleList(sampleManager);
+                    break;
+                case "sample_update":
+                    if (parts.length < 3) {
+                        System.out.println("Ошибка: укажите id и поля для обновления (например sample_update 12 name=Новое)");
+                        break;
+                    }
+                    try {
+                        long id = Long.parseLong(parts[1]);
+                        StringBuilder argsBuilder = new StringBuilder();
+                        for (int i = 2; i < parts.length; i++) {
+                            if (i > 2) argsBuilder.append(" ");
+                            argsBuilder.append(parts[i]);
+                        }
+                        String argsString = argsBuilder.toString();
+                        sampleUpdate(id, argsString, sampleManager);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Ошибка: id должен быть числом");
+                    }
                     break;
                 default:
                     System.out.println("Неизвестная команда. Введите help для списка команд.");
@@ -95,6 +110,60 @@ public class Main {
         for (Sample s : samples) {
             System.out.printf("%-5d %-20s %-10s %-15s %s%n",
                     s.getId(), s.getName(), s.getType(), s.getLocation(), s.getStatus());
+        }
+    }
+
+    private static void sampleUpdate(long id, String argsString, SampleManager sampleManager) {
+        Sample sample = sampleManager.getSampleById(id);
+        if (sample == null) {
+            System.out.println("Ошибка: образец с id=" + id + " не найден");
+            return;
+        }
+
+        String[] pairs = argsString.split(" ");
+        String newName = null;
+        String newType = null;
+        String newLocation = null;
+        SampleStatus newStatus = null;
+
+        for (String pair : pairs) {
+            String[] kv = pair.split("=");
+            if (kv.length != 2) {
+                System.out.println("Ошибка: неправильный формат поля (должно быть field=value)");
+                return;
+            }
+            String field = kv[0];
+            String value = kv[1];
+
+            switch (field) {
+                case "name":
+                    newName = value;
+                    break;
+                case "type":
+                    newType = value;
+                    break;
+                case "location":
+                    newLocation = value;
+                    break;
+                case "status":
+                    try {
+                        newStatus = SampleStatus.valueOf(value.toUpperCase());
+                    } catch (IllegalArgumentException e) {
+                        System.out.println("Ошибка: статус должен быть ACTIVE или ARCHIVED");
+                        return;
+                    }
+                    break;
+                default:
+                    System.out.println("Ошибка: нельзя менять поле '" + field + "'");
+                    return;
+            }
+        }
+
+        boolean updated = sampleManager.updateSample(id, newName, newType, newLocation, newStatus);
+        if (updated) {
+            System.out.println("OK");
+        } else {
+            System.out.println("Ошибка: не удалось обновить образец (возможно, образец не найден)");
         }
     }
 }
