@@ -3,15 +3,13 @@ package ru.dasha.lab.cli;
 import ru.dasha.lab.domain.*;
 import ru.dasha.lab.service.*;
 
-import java.util.List;
-import java.util.Scanner;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
         try {
             System.setOut(new java.io.PrintStream(System.out, true, "UTF-8"));
         } catch (Exception e) {
-            // ignored
         }
 
         SampleManager sampleManager = new SampleManager();
@@ -113,6 +111,12 @@ public class Main {
                     } catch (NumberFormatException e) {
                         System.out.println("Ошибка: sample_id должен быть числом");
                     }
+                    break;
+                case "meas_stats":
+                    measStats(parts, measurementManager);
+                    break;
+                case "prot_create":
+                    protCreate(scanner, protocolManager);
                     break;
                 default:
                     System.out.println("Неизвестная команда. Введите help для списка команд.");
@@ -239,6 +243,7 @@ public class Main {
             System.out.println("Ошибка: не удалось архивировать образец");
         }
     }
+
     private static void addMeasurement(Scanner scanner, long sampleId,
                                        SampleManager sampleManager,
                                        MeasurementManager measurementManager) {
@@ -289,9 +294,8 @@ public class Main {
             System.out.println("Ошибка: " + e.getMessage());
         }
     }
-    private static void measList(long sampleId, String paramStr, int last,
-                                 SampleManager sampleManager,
-                                 MeasurementManager measurementManager) {
+
+    private static void measList(long sampleId, String paramStr, int last, SampleManager sampleManager, MeasurementManager measurementManager) {
         Sample sample = sampleManager.getSampleById(sampleId);
         if (sample == null) {
             System.out.println("Ошибка: образец с id=" + sampleId + " не найден");
@@ -316,8 +320,8 @@ public class Main {
         if (last > 0) {
             measurements = measurementManager.getLastMeasurements(sampleId, last);
             if (paramStr != null) {
-                measurements = measurementManager.getMeasurementsBySampleIdAndParam(sampleId, paramStr != null ? MeasurementParam.valueOf(paramStr) : null);
-                if (last > 0 && measurements.size() > last) {
+                measurements = measurementManager.getMeasurementsBySampleIdAndParam(sampleId, MeasurementParam.valueOf(paramStr));
+                if (measurements.size() > last) {
                     measurements = measurements.subList(0, last);
                 }
             }
@@ -332,6 +336,71 @@ public class Main {
         for (Measurement m : measurements) {
             System.out.printf("%-5d %-10s %-10.2f %-12s %-10s %s%n",
                     m.getId(), m.getParam(), m.getValue(), m.getUnit(), m.getMethod(), m.getMeasuredAt());
+        }
+    }
+
+    private static void measStats(String[] parts, MeasurementManager measurementManager) {
+        if (parts.length < 3) {
+            System.out.println("Ошибка: укажите id образца и параметр (например meas_stats 1 PH)");
+            return;
+        }
+        long sampleId;
+        try {
+            sampleId = Long.parseLong(parts[1]);
+        } catch (NumberFormatException e) {
+            System.out.println("Ошибка: id должен быть числом");
+            return;
+        }
+        String paramStr = parts[2].toUpperCase();
+        MeasurementParam param;
+        try {
+            param = MeasurementParam.valueOf(paramStr);
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка: неизвестный параметр. Допустимые: PH, CONDUCTIVITY, TURBIDITY, NITRATE");
+            return;
+        }
+        MeasurementManager.MeasurementStats stats = measurementManager.getStatistics(sampleId, param);
+        if (stats == null) {
+            System.out.println("Ошибка: нет измерений " + param + " для sample=" + sampleId);
+            return;
+        }
+        System.out.printf("count: %d min: %.2f max: %.2f avg: %.2f%n",
+                stats.getCount(), stats.getMin(), stats.getMax(), stats.getAvg());
+    }
+
+    private static void protCreate(Scanner scanner, ProtocolManager protocolManager) {
+        System.out.print("Название протокола: ");
+        String name = scanner.nextLine().trim();
+        if (name.isEmpty()) {
+            System.out.println("Ошибка: имя протокола не может быть пустым");
+            return;
+        }
+        System.out.print("Обязательные параметры (через запятую, например PH,CONDUCTIVITY): ");
+        String paramsLine = scanner.nextLine().trim();
+        if (paramsLine.isEmpty()) {
+            System.out.println("Ошибка: нужно указать хотя бы один параметр");
+            return;
+        }
+        String[] paramTokens = paramsLine.split(",");
+        Set<MeasurementParam> requiredParams = new HashSet<>();
+        for (String token : paramTokens) {
+            try {
+                requiredParams.add(MeasurementParam.valueOf(token.trim().toUpperCase()));
+            } catch (IllegalArgumentException e) {
+                System.out.println("Ошибка: неизвестный параметр '" + token + "'");
+                return;
+            }
+        }
+        if (requiredParams.isEmpty()) {
+            System.out.println("Ошибка: список параметров не может быть пустым");
+            return;
+        }
+        String owner = "SYSTEM";
+        try {
+            Protocol protocol = protocolManager.createProtocol(name, requiredParams, owner);
+            System.out.println("OK protocol_id=" + protocol.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("Ошибка: " + e.getMessage());
         }
     }
 }
