@@ -118,6 +118,9 @@ public class Main {
                 case "prot_create":
                     protCreate(scanner, protocolManager);
                     break;
+                case "prot_apply":
+                    protApply(parts, protocolManager, measurementManager);
+                    break;
                 default:
                     System.out.println("Неизвестная команда. Введите help для списка команд.");
             }
@@ -401,6 +404,45 @@ public class Main {
             System.out.println("OK protocol_id=" + protocol.getId());
         } catch (IllegalArgumentException e) {
             System.out.println("Ошибка: " + e.getMessage());
+        }
+    }
+
+    private static void protApply(String[] parts, ProtocolManager protocolManager, MeasurementManager measurementManager) {
+        if (parts.length < 3) {
+            System.out.println("Ошибка: укажите id протокола и id образца (например prot_apply 1 12)");
+            return;
+        }
+        long protocolId, sampleId;
+        try {
+            protocolId = Long.parseLong(parts[1]);
+            sampleId = Long.parseLong(parts[2]);
+        } catch (NumberFormatException e) {
+            System.out.println("Ошибка: id должны быть числами");
+            return;
+        }
+        Protocol protocol = protocolManager.getProtocolById(protocolId);
+        if (protocol == null) {
+            System.out.println("Ошибка: протокол с id=" + protocolId + " не найден");
+            return;
+        }
+        List<Measurement> measurements = measurementManager.getMeasurementsBySampleId(sampleId);
+
+        Set<MeasurementParam> measuredParams = new HashSet<>();
+        for (Measurement m : measurements) {
+            measuredParams.add(m.getParam());
+        }
+        Set<MeasurementParam> missing = protocolManager.getMissingParams(protocolId, measuredParams);
+        if (missing.isEmpty()) {
+            System.out.println("OK protocol is complete");
+        } else {
+            System.out.print("Missing params: ");
+            boolean first = true;
+            for (MeasurementParam p : missing) {
+                if (!first) System.out.print(", ");
+                System.out.print(p);
+                first = false;
+            }
+            System.out.println();
         }
     }
 }
