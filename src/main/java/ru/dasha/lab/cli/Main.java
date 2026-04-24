@@ -39,6 +39,18 @@ public class Main {
                 case "sample_list":
                     sampleList(sampleManager);
                     break;
+                case "sample_show":
+                    if (parts.length < 2) {
+                        System.out.println("Ошибка: укажите id образца");
+                        break;
+                    }
+                    try {
+                        long id = Long.parseLong(parts[1]);
+                        sampleShow(id, sampleManager, measurementManager);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Ошибка: id должен быть числом");
+                    }
+                    break;
                 case "sample_update":
                     if (parts.length < 3) {
                         System.out.println("Ошибка: укажите id и поля для обновления (например sample_update 12 name=Новое)");
@@ -173,6 +185,30 @@ public class Main {
             System.out.printf("%-5d %-20s %-10s %-15s %s%n",
                     s.getId(), s.getName(), s.getType(), s.getLocation(), s.getStatus());
         }
+    }
+
+    private static void sampleShow(long id, SampleManager sampleManager, MeasurementManager measurementManager) {
+        Sample sample = sampleManager.getSampleById(id);
+        if (sample == null) {
+            System.out.println("Ошибка: образец с id=" + id + " не найден");
+            return;
+        }
+        List<Measurement> measurements = measurementManager.getMeasurementsBySampleId(id);
+        StringBuilder params = new StringBuilder();
+        boolean first = true;
+        for (Measurement m : measurements) {
+            if (!first) params.append(", ");
+            params.append(m.getParam());
+            first = false;
+        }
+        System.out.printf("Sample #%d%n", sample.getId());
+        System.out.printf("  name: %s%n", sample.getName());
+        System.out.printf("  type: %s%n", sample.getType());
+        System.out.printf("  location: %s%n", sample.getLocation());
+        System.out.printf("  status: %s%n", sample.getStatus());
+        System.out.printf("  owner: %s%n", sample.getOwnerUsername());
+        System.out.printf("  measurements: %d%n", measurements.size());
+        System.out.printf("  params: %s%n", params.toString().isEmpty() ? "нет" : params.toString());
     }
 
     private static void sampleUpdate(long id, String argsString, SampleManager sampleManager) {
