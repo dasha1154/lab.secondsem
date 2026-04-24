@@ -296,13 +296,13 @@ public class Main {
             return;
         }
 
-        System.out.print("Параметр (PH/CONDUCTIVITY/TURBIDITY/NITRATE): ");
+        System.out.print("Параметр (PH/CONDUCTIVITY/TURBIDITY/NITRATE/TEMPERATURE/CHLORIDE/PHOSPHATE/COLOR/DENSITY)");
         String paramStr = scanner.nextLine().trim().toUpperCase();
         MeasurementParam param;
         try {
             param = MeasurementParam.valueOf(paramStr);
         } catch (IllegalArgumentException e) {
-            System.out.println("Ошибка: неизвестный параметр. Допустимые: PH, CONDUCTIVITY, TURBIDITY, NITRATE");
+            System.out.println("Ошибка: неизвестный параметр. Допустимые: PH,CONDUCTIVITY,TURBIDITY,NITRATE,TEMPERATURE,CHLORIDE,PHOSPHATE,COLOR,DENSITY");
             return;
         }
 
@@ -347,7 +347,7 @@ public class Main {
             try {
                 param = MeasurementParam.valueOf(paramStr);
             } catch (IllegalArgumentException e) {
-                System.out.println("Ошибка: неизвестный параметр. Допустимые: PH, CONDUCTIVITY, TURBIDITY, NITRATE");
+                System.out.println("Ошибка: неизвестный параметр. Допустимые: PH,CONDUCTIVITY,TURBIDITY,NITRATE,TEMPERATURE,CHLORIDE,PHOSPHATE,COLOR,DENSITY");
                 return;
             }
             measurements = measurementManager.getMeasurementsBySampleIdAndParam(sampleId, param);
@@ -395,7 +395,7 @@ public class Main {
         try {
             param = MeasurementParam.valueOf(paramStr);
         } catch (IllegalArgumentException e) {
-            System.out.println("Ошибка: неизвестный параметр. Допустимые: PH, CONDUCTIVITY, TURBIDITY, NITRATE");
+            System.out.println("Ошибка: неизвестный параметр. Допустимые: PH,CONDUCTIVITY,TURBIDITY,NITRATE,TEMPERATURE,CHLORIDE,PHOSPHATE,COLOR,DENSITY");
             return;
         }
         MeasurementManager.MeasurementStats stats = measurementManager.getStatistics(sampleId, param);
@@ -414,7 +414,7 @@ public class Main {
             System.out.println("Ошибка: имя протокола не может быть пустым");
             return;
         }
-        System.out.print("Обязательные параметры (через запятую, например PH,CONDUCTIVITY): ");
+        System.out.print("Обязательные параметры (через запятую, например PH,CONDUCTIVITY,TURBIDITY,NITRATE,TEMPERATURE,CHLORIDE,PHOSPHATE,COLOR,DENSITY): ");
         String paramsLine = scanner.nextLine().trim();
         if (paramsLine.isEmpty()) {
             System.out.println("Ошибка: нужно указать хотя бы один параметр");

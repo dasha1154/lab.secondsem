@@ -2,7 +2,12 @@ package ru.dasha.lab.domain;
 
 public enum MeasurementParam {
     PH,
-    CONDUCTIVITY,
-    TURBIDITY,
-    NITRATE
+    CONDUCTIVITY,   //электропроводность
+    TURBIDITY,      //мутность
+    NITRATE,
+    TEMPERATURE,
+    CHLORIDE,
+    PHOSPHATE,
+    COLOR,
+    DENSITY
 }
